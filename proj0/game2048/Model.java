@@ -178,8 +178,6 @@ public class Model extends Observable {
         // changed local variable to true.
         board.setViewingPerspective(side);
         for (int x = 0; x < board.size(); x++) {
-            //错误写法：changed = changed || handleOneColTiltUp(x)；
-            //这是因为在上式中，如果changed == true，此时就不会执行后面的函数了...
             if (tiltColumn(x)) {
                 changed = true;
             }
