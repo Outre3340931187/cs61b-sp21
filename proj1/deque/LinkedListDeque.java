@@ -68,16 +68,20 @@ public class LinkedListDeque<T> implements Deque<T> {
         System.out.println();
     }
 
+    public T removeIfSingleElement() {
+        T item = head.data;
+        head = tail = null;
+        return item;
+    }
+
     @Override
     public T removeFirst() {
         if (head == null) {
             return null;
         }
         size--;
-        if (size == 0) {
-            T item = head.data;
-            head = tail = null;
-            return item;
+        if (isEmpty()) {
+            return removeIfSingleElement();
         }
         Node node = head;
         head = head.next;
@@ -91,10 +95,8 @@ public class LinkedListDeque<T> implements Deque<T> {
             return null;
         }
         size--;
-        if (size == 0) {
-            T item = head.data;
-            head = tail = null;
-            return item;
+        if (isEmpty()) {
+            return removeIfSingleElement();
         }
         Node node = tail;
         tail = tail.prev;
