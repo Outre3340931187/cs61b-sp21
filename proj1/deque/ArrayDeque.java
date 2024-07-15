@@ -1,6 +1,10 @@
 package deque;
 
-public class ArrayDeque<T> implements Deque<T> {
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private T[] data;
     private int size;
     private int head;
@@ -138,5 +142,46 @@ public class ArrayDeque<T> implements Deque<T> {
             return null;
         }
         return data[(index + head + 1) % data.length];
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    class ArrayDequeIterator implements Iterator<T> {
+        private int passed;
+
+        public ArrayDequeIterator() {
+            passed = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return passed < size;
+        }
+
+        @Override
+        public T next() {
+            return get(passed++);
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Deque)) return false;
+        Deque<?> that = (Deque<?>) o;
+        for (int i = 0; i < size; i++) {
+            if (!get(i).equals(that.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(Arrays.hashCode(data), size, head, tail);
     }
 }
