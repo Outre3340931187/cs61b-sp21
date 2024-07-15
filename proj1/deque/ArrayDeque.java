@@ -62,7 +62,7 @@ public class ArrayDeque<T> implements Deque<T> {
             resizeIfFull();
         }
         data[tail] = item;
-        tail--;
+        tail++;
         if (tail == data.length) {
             tail -= data.length;
         }
