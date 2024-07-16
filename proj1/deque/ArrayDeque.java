@@ -32,7 +32,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     private void resizeIfLessThanQuarter() {
         T[] newData = (T[]) new Object[data.length / 4];
-        int distance = data.length / 4 * 3;
+        int threeQuarters = data.length / 4 * 3;
         if (head < tail) {
             for (int i = head + 1; i < tail; i++) {
                 newData[i - head - 1] = data[i];
@@ -41,9 +41,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             tail = 0;
         } else {
             System.arraycopy(data, 0, newData, 0, tail);
-            System.arraycopy(data, head + 1, newData, head + 1 - distance,
+            System.arraycopy(data, head + 1, newData, head + 1 - threeQuarters,
                     data.length - (head + 1));
-            head -= distance;
+            head -= threeQuarters;
             if (head < 0) {
                 head += newData.length;
             }
@@ -104,10 +104,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             head -= data.length;
         }
         size--;
+        T item = data[head];
         if (size == data.length / 4 && data.length >= 16) {
             resizeIfLessThanQuarter();
         }
-        return data[head];
+        return item;
     }
 
     @Override
@@ -120,10 +121,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             tail += data.length;
         }
         size--;
+        T item = data[tail];
         if (size == data.length / 4 && data.length >= 16) {
             resizeIfLessThanQuarter();
         }
-        return data[tail];
+        return item;
     }
 
     @Override
@@ -175,5 +177,22 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             }
         }
         return true;
+    }
+
+    public static void main(String[] args) {
+        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
+        int cnt = 32;
+        for (int i = 0; i < cnt; i++) {
+            deque.addFirst(i);
+        }
+        for (int i = 0; i < cnt - 8; i++) {
+            System.out.println(deque.removeFirst());
+        }
+        for (int i = 0; i < cnt; i++) {
+            deque.addLast(i);
+        }
+        for (int i = 0; i < cnt + 8; i++) {
+            System.out.println(deque.removeLast());
+        }
     }
 }
