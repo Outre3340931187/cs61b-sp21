@@ -9,7 +9,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         Node prev;
         Node next;
 
-        public Node(T data) {
+        Node(T data) {
             this.data = data;
             prev = null;
             next = null;
@@ -123,7 +123,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class LinkedListDequeIterator implements Iterator<T> {
         Node current;
 
-        public LinkedListDequeIterator() {
+        LinkedListDequeIterator() {
             current = head;
         }
 
@@ -148,17 +148,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
                 return false;
             }
             Deque<?> that = (Deque<?>) o;
+            if (size != that.size()) {
+                return false;
+            }
             for (int i = 0; i < size; i++) {
                 if (!get(i).equals(that.get(i))) {
                     return false;
                 }
             }
             return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(head, tail, size);
         }
     }
 }
