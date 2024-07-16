@@ -43,6 +43,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
                     data.length - (head + 1));
         }
         head -= distance;
+        if (head < 0) {
+            head += newData.length;
+        }
         data = newData;
     }
 
