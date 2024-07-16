@@ -178,21 +178,4 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         }
         return true;
     }
-
-    public static void main(String[] args) {
-        ArrayDeque<Integer> deque = new ArrayDeque<Integer>();
-        int cnt = 32;
-        for (int i = 0; i < cnt; i++) {
-            deque.addFirst(i);
-        }
-        for (int i = 0; i < cnt - 8; i++) {
-            System.out.println(deque.removeFirst());
-        }
-        for (int i = 0; i < cnt; i++) {
-            deque.addLast(i);
-        }
-        for (int i = 0; i < cnt + 8; i++) {
-            System.out.println(deque.removeLast());
-        }
-    }
 }
