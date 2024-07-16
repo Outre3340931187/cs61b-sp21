@@ -65,7 +65,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         System.out.println();
     }
 
-    public T removeIfSingleElement() {
+    private T removeIfSingleElement() {
         T item = head.data;
         head = tail = null;
         return item;
@@ -129,6 +129,26 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
+        Deque<?> that = (Deque<?>) o;
+        if (size != that.size()) {
+            return false;
+        }
+        for (int i = 0; i < size; i++) {
+            if (!get(i).equals(that.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public Iterator<T> iterator() {
         return new LinkedListDequeIterator();
     }
@@ -150,26 +170,6 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             T item = current.data;
             current = current.next;
             return item;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof Deque)) {
-                return false;
-            }
-            Deque<?> that = (Deque<?>) o;
-            if (size != that.size()) {
-                return false;
-            }
-            for (int i = 0; i < size; i++) {
-                if (!get(i).equals(that.get(i))) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }
