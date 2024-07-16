@@ -37,14 +37,16 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             for (int i = head + 1; i < tail; i++) {
                 newData[i - head - 1] = data[i];
             }
+            head = newData.length - 1;
+            tail = 0;
         } else {
             System.arraycopy(data, 0, newData, 0, tail);
             System.arraycopy(data, head + 1, newData, head + 1 - distance,
                     data.length - (head + 1));
-        }
-        head -= distance;
-        if (head < 0) {
-            head += newData.length;
+            head -= distance;
+            if (head < 0) {
+                head += newData.length;
+            }
         }
         data = newData;
     }
