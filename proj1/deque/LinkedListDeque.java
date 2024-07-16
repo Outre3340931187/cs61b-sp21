@@ -1,7 +1,6 @@
 package deque;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
@@ -113,6 +112,20 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         } catch (NullPointerException e) {
             return null;
         }
+    }
+
+    public T getRecursive(int index) {
+        if (index < 0 || index >= size) {
+            return null;
+        }
+        return getRecursive(index, head);
+    }
+
+    private T getRecursive(int index, Node node) {
+        if (index == 0) {
+            return node.data;
+        }
+        return getRecursive(index - 1, node.next);
     }
 
     @Override
