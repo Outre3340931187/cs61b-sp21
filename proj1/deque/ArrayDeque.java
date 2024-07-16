@@ -22,6 +22,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         T[] newData = (T[]) new Object[data.length * 2];
         if (tail == 0) {
             System.arraycopy(data, 0, newData, 0, data.length);
+            tail += data.length;
         } else {
             System.arraycopy(data, 0, newData, 0, tail);
             System.arraycopy(data, head + 1, newData, head + 1 + data.length,
@@ -73,11 +74,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         size++;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
     private boolean isFull() {
         return size == data.length;
     }
@@ -89,17 +85,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public void printDeque() {
-        if (head < tail) {
-            for (int i = head + 1; i < tail; i++) {
-                System.out.print(data[i] + " ");
-            }
-        } else {
-            for (int i = head + 1; i < data.length; i++) {
-                System.out.print(data[i] + " ");
-            }
-            for (int i = 0; i < tail; i++) {
-                System.out.print(data[i] + " ");
-            }
+        for (int i = 0; i < size; i++) {
+            System.out.print(get(i) + " ");
         }
         System.out.println();
     }
@@ -109,14 +96,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        if (size == data.length / 4 && data.length >= 16) {
-            resizeIfLessThanQuarter();
-        }
         head++;
         if (head == data.length) {
             head -= data.length;
         }
         size--;
+        if (size == data.length / 4 && data.length >= 16) {
+            resizeIfLessThanQuarter();
+        }
         return data[head];
     }
 
@@ -125,14 +112,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        if (size == data.length / 4 && data.length >= 16) {
-            resizeIfLessThanQuarter();
-        }
         tail--;
         if (tail < 0) {
             tail += data.length;
         }
         size--;
+        if (size == data.length / 4 && data.length >= 16) {
+            resizeIfLessThanQuarter();
+        }
         return data[tail];
     }
 
@@ -149,7 +136,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return new ArrayDequeIterator();
     }
 
-    class ArrayDequeIterator implements Iterator<T> {
+    private class ArrayDequeIterator implements Iterator<T> {
         private int passed;
 
         public ArrayDequeIterator() {
@@ -169,8 +156,12 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Deque)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
         Deque<?> that = (Deque<?>) o;
         for (int i = 0; i < size; i++) {
             if (!get(i).equals(that.get(i))) {
