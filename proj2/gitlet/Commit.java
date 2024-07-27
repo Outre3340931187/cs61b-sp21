@@ -28,7 +28,7 @@ public class Commit implements Serializable, Dumpable {
     private final String hashCode;
 
     private final static DateTimeFormatter formatter
-            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy XX", Locale.US);
+            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
 
 
     public Commit(String msg, ZonedDateTime time, List<String> parentCode, Map<String, String> blobCodes) {
