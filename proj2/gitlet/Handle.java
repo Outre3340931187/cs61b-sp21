@@ -47,20 +47,18 @@ public class Handle {
 
     public static void handleCheckout(String[] args) {
         if (args.length == 2) {
-            if (args[1].startsWith("--")) {
-                String filename = args[1].substring(2);
-                Commit commit = Tools.getHeadCommit();
-                if (!commit.getBlobHashCodes().containsKey(filename)) {
-                    System.out.println("File does not exist in that commit.");
-                    return;
-                }
-                Repository.checkout(filename);
-            } else {
 
-            }
         } else if (args.length == 3) {
+            String filename = args[2];
+            Commit commit = Tools.getHeadCommit();
+            if (!commit.getBlobHashCodes().containsKey(filename)) {
+                System.out.println("File does not exist in that commit.");
+                return;
+            }
+            Repository.checkout(filename);
+        } else if (args.length == 4) {
             String commitHashCode = args[1];
-            String filename = args[2].substring(2);
+            String filename = args[3];
             if (!Commit.contains(commitHashCode)) {
                 System.out.println("No commit with that id exists.");
                 return;
