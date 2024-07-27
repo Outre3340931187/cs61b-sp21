@@ -1,26 +1,84 @@
 package gitlet;
 
-// TODO: any imports you need here
+import java.io.File;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
-import java.util.Date; // TODO: You'll likely use this in this class
-
-/** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+/**
+ * Represents a gitlet commit object.
  *
- *  @author TODO
+ * @author Outre
  */
-public class Commit {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
+public class Commit implements Serializable, Dumpable {
+    /*
+      List all instance variables of the Commit class here with a useful
+      comment above them describing what that variable represents and how that
+      variable is used. We've provided one example for `message`.
      */
 
-    /** The message of this Commit. */
-    private String message;
+    /**
+     * The message of this Commit.
+     */
+    private final String message;
+    private final ZonedDateTime commitTime;
+    private final List<String> parentHashCodes;
+    private final Map<String, String> blobHashCodes;
+    private final String hashCode;
 
-    /* TODO: fill in the rest of this class. */
+    private final static DateTimeFormatter formatter
+            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy XX", Locale.US);
+
+
+    public Commit(String msg, ZonedDateTime time, List<String> parentCode, Map<String, String> blobCodes) {
+        this.message = msg;
+        this.commitTime = Objects.requireNonNullElseGet(time, ZonedDateTime::now);
+        this.parentHashCodes = parentCode;
+        this.blobHashCodes = Objects.requireNonNullElseGet(blobCodes, HashMap::new);
+        this.hashCode = Utils.sha1(Utils.serialize(this));
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public ZonedDateTime getCommitTime() {
+        return commitTime;
+    }
+
+    public List<String> getParentHashCodes() {
+        return parentHashCodes;
+    }
+
+    public Map<String, String> getBlobHashCodes() {
+        return blobHashCodes;
+    }
+
+    public String getHashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public void dump() {
+        System.out.println("===");
+        System.out.println("commit " + hashCode);
+        System.out.println("Date: " + commitTime.format(formatter));
+        System.out.println(message);
+        System.out.println();
+    }
+
+    public static boolean contains(String commitHashCode) {
+        File[] commitFiles = Dir.commits().listFiles();
+        if (commitFiles == null) {
+            return false;
+        }
+        commitHashCode += Repository.DOT_COMMIT;
+        for (File commitFile : commitFiles) {
+            if (commitFile.getName().equals(commitHashCode)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

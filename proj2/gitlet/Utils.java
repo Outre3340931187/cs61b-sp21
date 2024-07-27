@@ -60,7 +60,7 @@ class Utils {
     /** Returns the SHA-1 hash of the concatenation of the strings in
      *  VALS. */
     static String sha1(List<Object> vals) {
-        return sha1(vals.toArray(new Object[vals.size()]));
+        return sha1(vals.toArray(new Object[0]));
     }
 
     /* FILE DELETION */
@@ -118,8 +118,7 @@ class Utils {
     static void writeContents(File file, Object... contents) {
         try {
             if (file.isDirectory()) {
-                throw
-                    new IllegalArgumentException("cannot overwrite directory");
+                throw new IllegalArgumentException("cannot overwrite directory");
             }
             BufferedOutputStream str =
                 new BufferedOutputStream(Files.newOutputStream(file.toPath()));
