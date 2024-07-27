@@ -15,8 +15,6 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
-        args = new String[1];
-        args[0] = "log";
         String firstArg = args[0];
         switch (firstArg) {
             case "init":

@@ -33,9 +33,9 @@ public class Commit implements Serializable, Dumpable {
 
     public Commit(String msg, ZonedDateTime time, List<String> parentCode, Map<String, String> blobCodes) {
         this.message = msg;
-        this.commitTime = Objects.requireNonNullElseGet(time, ZonedDateTime::now);
+        this.commitTime = time == null ? ZonedDateTime.now() : time;
         this.parentHashCodes = parentCode;
-        this.blobHashCodes = Objects.requireNonNullElseGet(blobCodes, HashMap::new);
+        this.blobHashCodes = blobCodes == null ? new HashMap<>() : blobCodes;
         this.hashCode = Utils.sha1(Utils.serialize(this));
     }
 

@@ -80,7 +80,6 @@ public class Repository {
         File thisFile = Utils.join(CWD, filename);
         byte[] thisFileBytes = Tools.readAllBytes(thisFile);
 
-        // 判断当前文件是否被修改
         if (currentCommit.getBlobHashCodes() != null && currentCommit.getBlobHashCodes().get(filename) != null) {
             String hashCode = currentCommit.getBlobHashCodes().get(filename);
             byte[] commitedFileContents = Tools.getBlob(hashCode).getContents();
@@ -113,7 +112,7 @@ public class Repository {
             for (File f : addedFiles) {
                 boolean success = f.delete();
             }
-            Commit newCommit = new Commit(message, null, List.of(parentHashCode), parentBlobs);
+            Commit newCommit = new Commit(message, null, Collections.singletonList(parentHashCode), parentBlobs);
             String newCommitHashCode = newCommit.getHashCode();
             File newCommitFile = Utils.join(Dir.commits(), newCommitHashCode + DOT_COMMIT);
             boolean success = newCommitFile.createNewFile();
