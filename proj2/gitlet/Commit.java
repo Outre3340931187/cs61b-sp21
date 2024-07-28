@@ -27,8 +27,7 @@ public class Commit implements Serializable, Dumpable {
     private final Map<String, String> blobHashCodes;
     private final String hashCode;
 
-    private final static DateTimeFormatter formatter
-            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
 
 
     public Commit(String msg, ZonedDateTime time, List<String> parentCode, Map<String, String> blobCodes) {
@@ -63,6 +62,11 @@ public class Commit implements Serializable, Dumpable {
     public void dump() {
         System.out.println("===");
         System.out.println("commit " + hashCode);
+        if (parentHashCodes != null && parentHashCodes.size() > 1) {
+            String firstParentHashCode = parentHashCodes.get(0).substring(0, 7);
+            String secondParentHashCode = parentHashCodes.get(1).substring(0, 7);
+            System.out.println("Merge: " + firstParentHashCode + " " + secondParentHashCode);
+        }
         System.out.println("Date: " + commitTime.format(formatter));
         System.out.println(message);
         System.out.println();
