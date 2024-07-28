@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -58,7 +57,7 @@ public class Repository {
             success &= head.createNewFile();
             success &= staging.mkdir();
             success &= add.mkdir();
-            success &= remove.mkdir();
+            success &= remove.createNewFile();
 
             ZonedDateTime epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
             Commit initialCommit = new Commit("initial commit", epoch, null, null);
@@ -69,6 +68,7 @@ public class Repository {
             success &= initialBranchHead.createNewFile();
             Utils.writeObject(initialCommitFile, initialCommit);
             Utils.writeContents(initialBranchHead, hashCode);
+            Utils.writeObject(remove, new HashSet<String>());
             Utils.writeContents(head, DEFAULT_BRANCH_NAME);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -102,16 +102,25 @@ public class Repository {
         try {
             String parentHashCode = Tools.getHeadCommitHashCode();
             Map<String, String> parentBlobs = Tools.getCommit(parentHashCode).getBlobHashCodes();
+
             File[] addedFiles = Utils.join(Dir.add()).listFiles();
-            assert addedFiles != null;
-            for (File f : addedFiles) {
-                String filename = f.getName();
-                String hashCode = Tools.addStagingToBlobs(f);
-                parentBlobs.put(filename, hashCode);
+            if (addedFiles != null) {
+                for (File f : addedFiles) {
+                    String filename = f.getName();
+                    String hashCode = Tools.addStagingToBlobs(f);
+                    parentBlobs.put(filename, hashCode);
+                }
+                for (File f : addedFiles) {
+                    boolean success = f.delete();
+                }
             }
-            for (File f : addedFiles) {
-                boolean success = f.delete();
+            HashSet<String> removedFiles = Utils.readObject(Dir.remove(), HashSet.class);
+            for (String filename : removedFiles) {
+                parentBlobs.remove(filename);
             }
+            removedFiles.clear();
+            Utils.writeObject(Dir.remove(), removedFiles);
+
             Commit newCommit = new Commit(message, null, Collections.singletonList(parentHashCode), parentBlobs);
             String newCommitHashCode = newCommit.getHashCode();
             File newCommitFile = Utils.join(Dir.commits(), newCommitHashCode + DOT_COMMIT);
@@ -120,6 +129,33 @@ public class Repository {
             Utils.writeContents(Tools.getHeadFile(), newCommitHashCode);
         } catch (IOException e) {
             throw new GitletException("Failed to commit.");
+        }
+    }
+
+    public static void rm(String filename) {
+        File stagedFile = Utils.join(Dir.add(), filename);
+        if (stagedFile.exists()) {
+            boolean success = stagedFile.delete();
+        }
+        if (Tools.getHeadCommit().getBlobHashCodes().containsKey(filename)) {
+            HashSet<String> removedFiles = Utils.readObject(Dir.remove(), HashSet.class);
+            removedFiles.add(filename);
+            Utils.writeObject(Dir.remove(), removedFiles);
+        }
+        File workspaceFile = Utils.join(CWD, filename);
+        if (workspaceFile.exists()) {
+            boolean success = workspaceFile.delete();
+        }
+    }
+
+    public static void log() {
+        Commit commit = Tools.getHeadCommit();
+        while (true) {
+            commit.dump();
+            if (commit.getParentHashCodes() == null) {
+                break;
+            }
+            commit = Tools.getCommit(commit.getParentHashCodes().get(0));
         }
     }
 
@@ -139,17 +175,6 @@ public class Repository {
             Utils.writeContents(workspaceFile, contents);
         } catch (IOException e) {
             throw new GitletException();
-        }
-    }
-
-    public static void log() {
-        Commit commit = Tools.getHeadCommit();
-        while (true) {
-            commit.dump();
-            if (commit.getParentHashCodes() == null) {
-                break;
-            }
-            commit = Tools.getCommit(commit.getParentHashCodes().get(0));
         }
     }
 }

@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 public class Handle {
@@ -37,12 +38,28 @@ public class Handle {
             System.out.println("Incorrect operands.");
             return;
         }
-        if (Objects.requireNonNull(Dir.add().list()).length == 0) {
+        boolean addEmpty = Objects.requireNonNull(Dir.add().list()).length == 0;
+        boolean removeEmpty = Utils.readObject(Dir.remove(), HashSet.class).isEmpty();
+        if (addEmpty && removeEmpty) {
             System.out.println("No changes added to the commit.");
             return;
         }
         String message = args[1];
         Repository.commit(message);
+    }
+
+    public static void handleRm(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Incorrect operands.");
+        }
+        String filename = args[1];
+        boolean staged = Utils.join(Dir.add(), filename).exists();
+        boolean tracked = Tools.getHeadCommit().getBlobHashCodes().containsKey(filename);
+        if (!staged && !tracked) {
+            System.out.println("No reason to remove the file.");
+            return;
+        }
+        Repository.rm(filename);
     }
 
     public static void handleCheckout(String[] args) {

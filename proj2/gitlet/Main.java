@@ -32,6 +32,8 @@ public class Main {
             case "log":
                 Handle.handleLog(args);
                 break;
+            case "rm":
+                Handle.handleRm(args);
         }
     }
 }
