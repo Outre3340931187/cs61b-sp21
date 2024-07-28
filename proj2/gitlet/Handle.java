@@ -62,6 +62,20 @@ public class Handle {
         Repository.rm(filename);
     }
 
+    public static void handleLog(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Incorrect operands.");
+        }
+        Repository.log();
+    }
+
+    public static void handleGlobalLog(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Incorrect operands.");
+        }
+        Repository.globalLog();
+    }
+
     public static void handleCheckout(String[] args) {
         if (args.length == 2) {
 
@@ -89,12 +103,5 @@ public class Handle {
         } else {
             System.out.println("Incorrect operands.");
         }
-    }
-
-    public static void handleLog(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Incorrect operands.");
-        }
-        Repository.log();
     }
 }

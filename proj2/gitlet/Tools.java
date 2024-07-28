@@ -62,7 +62,7 @@ public class Tools {
             Utils.writeObject(blobFile, blob);
             return hashCode;
         } catch (IOException e) {
-            throw new GitletException("Failed to commit.");
+            throw new GitletException();
         }
     }
 }

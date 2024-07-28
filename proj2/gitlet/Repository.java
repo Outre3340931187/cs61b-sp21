@@ -111,7 +111,7 @@ public class Repository {
                     parentBlobs.put(filename, hashCode);
                 }
                 for (File f : addedFiles) {
-                    boolean success = f.delete();
+                    Utils.restrictedDelete(f);
                 }
             }
             HashSet<String> removedFiles = Utils.readObject(Dir.remove(), HashSet.class);
@@ -144,7 +144,7 @@ public class Repository {
         }
         File workspaceFile = Utils.join(CWD, filename);
         if (workspaceFile.exists()) {
-            boolean success = workspaceFile.delete();
+            Utils.restrictedDelete(workspaceFile);
         }
     }
 
@@ -156,6 +156,15 @@ public class Repository {
                 break;
             }
             commit = Tools.getCommit(commit.getParentHashCodes().get(0));
+        }
+    }
+
+    public static void globalLog() {
+        List<String> commitFilenames = Utils.plainFilenamesIn(Dir.commits());
+        assert commitFilenames != null;
+        for (String filename : commitFilenames) {
+            File commitFile = Utils.join(Dir.commits(), filename);
+            Utils.readObject(commitFile, Commit.class).dump();
         }
     }
 

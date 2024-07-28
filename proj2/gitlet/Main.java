@@ -34,6 +34,8 @@ public class Main {
                 break;
             case "rm":
                 Handle.handleRm(args);
+            case "global-log":
+                Handle.handleGlobalLog(args);
         }
     }
 }
