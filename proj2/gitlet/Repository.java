@@ -168,6 +168,23 @@ public class Repository {
         }
     }
 
+    public static void find(String message) {
+        List<String> commitFilenames = Utils.plainFilenamesIn(Dir.commits());
+        assert commitFilenames != null;
+        boolean found = false;
+        for (String filename : commitFilenames) {
+            File commitFile = Utils.join(Dir.commits(), filename);
+            Commit commit = Utils.readObject(commitFile, Commit.class);
+            if (message.equals(commit.getMessage())) {
+                System.out.println(commit.getHashCode());
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("Found no commit with that message.");
+        }
+    }
+
     public static void checkout(String filename) {
         checkout(Tools.getHeadCommitHashCode(), filename);
     }
