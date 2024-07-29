@@ -1,7 +1,11 @@
 package gitlet;
 
+import edu.neu.ccs.quick.Pair;
+
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
+import java.util.*;
 
 public class Tools {
 
@@ -64,5 +68,60 @@ public class Tools {
         } catch (IOException e) {
             throw new GitletException();
         }
+    }
+
+    public static HashSet<String> getRemovedFilenames() {
+        return Utils.readObject(Dir.remove(), HashSet.class);
+    }
+
+    public static TreeMap<String, String> getModifiedNotStagedFiles() {
+        TreeMap<String, String> modifiedNotStagedFiles = new TreeMap<>();
+        File[] addedFiles = Dir.add().listFiles();
+        Map<String, String> committedFiles = getHeadCommit().getBlobHashCodes();
+        if (addedFiles != null) {
+            for (File file : addedFiles) {
+                committedFiles.remove(file.getName());
+                if (!Utils.join(Repository.CWD, file.getName()).exists()) {
+                    modifiedNotStagedFiles.put(file.getName(), "deleted");
+                    continue;
+                }
+                byte[] addedContents = Utils.readObject(file, Blob.class).getContents();
+                byte[] currentContents = readAllBytes(Utils.join(Repository.CWD, file.getName()));
+                if (!Arrays.equals(addedContents, currentContents)) {
+                    modifiedNotStagedFiles.put(file.getName(), "modified");
+                }
+            }
+        }
+
+        for (String filename : committedFiles.keySet()) {
+            boolean delete = Utils.join(Repository.CWD, filename).exists();
+            boolean remove = getRemovedFilenames().contains(filename);
+            byte[] committedContents = getBlob(committedFiles.get(filename)).getContents();
+            byte[] currentContents = readAllBytes(Utils.join(Repository.CWD, filename));
+            boolean modified = !Arrays.equals(committedContents, currentContents);
+            if (delete && !remove) {
+                modifiedNotStagedFiles.put(filename, "deleted");
+            }
+            if (!delete && modified) {
+                modifiedNotStagedFiles.put(filename, "modified");
+            }
+        }
+        return modifiedNotStagedFiles;
+    }
+
+    public static TreeSet<String> getUntrackedFiles() {
+        TreeSet<String> untrackedFiles = new TreeSet<>();
+        List<String> workspaceFiles = Utils.plainFilenamesIn(Repository.CWD);
+        if (workspaceFiles == null) {
+            return untrackedFiles;
+        }
+        for (String filename : workspaceFiles) {
+            boolean add = Utils.join(Dir.add(), filename).exists();
+            boolean tracked = getHeadCommit().getBlobHashCodes().containsKey(filename);
+            if (!add && !tracked) {
+                untrackedFiles.add(filename);
+            }
+        }
+        return untrackedFiles;
     }
 }

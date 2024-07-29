@@ -88,6 +88,14 @@ public class Handle {
         Repository.find(message);
     }
 
+    public static void handleStatus(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
+        Repository.status();
+    }
+
     public static void handleCheckout(String[] args) {
         if (args.length == 2) {
 

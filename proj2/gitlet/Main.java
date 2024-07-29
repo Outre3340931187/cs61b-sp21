@@ -41,6 +41,9 @@ public class Main {
             case "find":
                 Handle.handleFind(args);
                 break;
+            case "status":
+                Handle.handleStatus(args);
+                break;
         }
     }
 }

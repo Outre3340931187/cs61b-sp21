@@ -114,12 +114,12 @@ public class Repository {
                     Utils.restrictedDelete(f);
                 }
             }
-            HashSet<String> removedFiles = Utils.readObject(Dir.remove(), HashSet.class);
-            for (String filename : removedFiles) {
+            HashSet<String> removedFilenames = Tools.getRemovedFilenames();
+            for (String filename : removedFilenames) {
                 parentBlobs.remove(filename);
             }
-            removedFiles.clear();
-            Utils.writeObject(Dir.remove(), removedFiles);
+            removedFilenames.clear();
+            Utils.writeObject(Dir.remove(), removedFilenames);
 
             Commit newCommit = new Commit(message, null, Collections.singletonList(parentHashCode), parentBlobs);
             String newCommitHashCode = newCommit.getHashCode();
@@ -135,12 +135,12 @@ public class Repository {
     public static void rm(String filename) {
         File stagedFile = Utils.join(Dir.add(), filename);
         if (stagedFile.exists()) {
-            boolean success = stagedFile.delete();
+            Utils.restrictedDelete(stagedFile);
         }
         if (Tools.getHeadCommit().getBlobHashCodes().containsKey(filename)) {
-            HashSet<String> removedFiles = Utils.readObject(Dir.remove(), HashSet.class);
-            removedFiles.add(filename);
-            Utils.writeObject(Dir.remove(), removedFiles);
+            HashSet<String> removedFilenames = Tools.getRemovedFilenames();
+            removedFilenames.add(filename);
+            Utils.writeObject(Dir.remove(), removedFilenames);
         }
         File workspaceFile = Utils.join(CWD, filename);
         if (workspaceFile.exists()) {
@@ -183,6 +183,41 @@ public class Repository {
         if (!found) {
             System.out.println("Found no commit with that message.");
         }
+    }
+
+    public static void status() {
+        System.out.println("=== Branches ===");
+        String currentBranchName = Tools.getCurrentBranchName();
+        for (String filename : Objects.requireNonNull(Utils.plainFilenamesIn(Dir.heads()))) {
+            String branchName = filename.substring(0, filename.lastIndexOf('.'));
+            if (branchName.equals(currentBranchName)) {
+                System.out.print("*");
+            }
+            System.out.println(branchName);
+        }
+        System.out.println();
+
+        System.out.println("=== Staged Files ===");
+        for (String filename : Objects.requireNonNull(Utils.plainFilenamesIn(Dir.add()))) {
+            System.out.println(filename);
+        }
+        System.out.println();
+
+        System.out.println("=== Removed Files ===");
+        TreeSet<String> removedFilenames = new TreeSet<>(Tools.getRemovedFilenames());
+        for (String filename : removedFilenames) {
+            System.out.println(filename);
+        }
+        System.out.println();
+
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        TreeMap<String, String> modifiedNotStagedFiles = Tools.getModifiedNotStagedFiles();
+        modifiedNotStagedFiles.forEach((name, state) -> System.out.printf("%s (%s)", name, state));
+        System.out.println();
+
+        System.out.println("=== Untracked Files ===");
+        Tools.getUntrackedFiles().forEach(System.out::println);
+        System.out.println();
     }
 
     public static void checkout(String filename) {
