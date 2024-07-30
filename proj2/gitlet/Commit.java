@@ -21,14 +21,14 @@ public class Commit implements Serializable, Dumpable {
     /**
      * The message of this Commit.
      */
+    private final static DateTimeFormatter FORMATTER
+            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
+
     private final String message;
     private final ZonedDateTime commitTime;
     private final List<String> parentHashCodes;
     private final Map<String, String> blobHashCodes;
     private final String hashCode;
-
-    private final static DateTimeFormatter FORMATTER
-            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
 
 
     public Commit(String msg, ZonedDateTime time, List<String> parents, Map<String, String> blobs) {
@@ -74,6 +74,9 @@ public class Commit implements Serializable, Dumpable {
     }
 
     public static boolean contains(String commitHashCode) {
+        if (commitHashCode == null) {
+            return false;
+        }
         File[] commitFiles = Dir.commits().listFiles();
         if (commitFiles == null) {
             return false;

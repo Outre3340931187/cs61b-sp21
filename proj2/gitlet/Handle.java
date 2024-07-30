@@ -103,6 +103,21 @@ public class Handle {
         Repository.status();
     }
 
+    private static void checkUntrackedFiles(Commit commit) {
+        Map<String, String> commitBlobs = commit.getBlobHashCodes();
+        List<String> workspaceFilenames = Utils.plainFilenamesIn(Repository.CWD);
+        Map<String, String> currentBlobs = Tools.getHeadCommit().getBlobHashCodes();
+        if (workspaceFilenames != null) {
+            for (String filename : workspaceFilenames) {
+                if (!currentBlobs.containsKey(filename) && commitBlobs.containsKey(filename)) {
+                    System.out.println("There is an untracked file in the way;"
+                            + " delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
     private static void handleCheckoutBranch(String[] args) {
         String branchName = args[1];
         if (!Utils.join(Dir.heads(), branchName + Repository.DOT_HEAD).exists()) {
@@ -113,18 +128,7 @@ public class Handle {
             System.out.println("No need to checkout the current branch.");
             return;
         }
-        Map<String, String> branchBlobs = Tools.getHeadCommit(branchName).getBlobHashCodes();
-        List<String> workspaceFilenames = Utils.plainFilenamesIn(Repository.CWD);
-        Map<String, String> currentBlobs = Tools.getHeadCommit().getBlobHashCodes();
-        if (workspaceFilenames != null) {
-            for (String filename : workspaceFilenames) {
-                if (!currentBlobs.containsKey(filename) && branchBlobs.containsKey(filename)) {
-                    System.out.println("There is an untracked file in the way;" +
-                            " delete it, or add and commit it first.");
-                    return;
-                }
-            }
-        }
+        checkUntrackedFiles(Tools.getHeadCommit(branchName));
         Repository.checkoutBranch(branchName);
     }
 
@@ -147,7 +151,7 @@ public class Handle {
             System.out.println("Incorrect operands.");
             return;
         }
-        String commitHashCode = args[1];
+        String commitHashCode = Tools.shortCommitToLong(args[1]);
         String filename = args[3];
         if (!Commit.contains(commitHashCode)) {
             System.out.println("No commit with that id exists.");
@@ -201,5 +205,19 @@ public class Handle {
             return;
         }
         Repository.rmBranch(branchName);
+    }
+
+    public static void handleReset(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
+        String commitHashCode = Tools.shortCommitToLong(args[1]);
+        if (!Commit.contains(commitHashCode)) {
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        checkUntrackedFiles(Tools.getCommit(commitHashCode));
+        Repository.reset(commitHashCode);
     }
 }

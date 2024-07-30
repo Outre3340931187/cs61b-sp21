@@ -55,6 +55,9 @@ public class Main {
             case "rm-branch":
                 Handle.handleRmBranch(args);
                 break;
+            case "reset":
+                Handle.handleReset(args);
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }

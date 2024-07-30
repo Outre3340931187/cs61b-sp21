@@ -146,11 +146,8 @@ public class Repository {
         if (Tools.getHeadCommit().getBlobHashCodes().containsKey(filename)) {
             HashSet<String> removedFilenames = Tools.getRemovedFilenames();
             removedFilenames.add(filename);
+            boolean success = Utils.join(CWD, filename).delete();
             Utils.writeObject(Dir.remove(), removedFilenames);
-        }
-        File workspaceFile = Utils.join(CWD, filename);
-        if (workspaceFile.exists()) {
-            boolean success = workspaceFile.delete();
         }
     }
 
@@ -245,9 +242,9 @@ public class Repository {
         }
     }
 
-    public static void checkoutBranch(String branchName) {
+    private static void changeWorkspace(Commit commit) {
         try {
-            Map<String, String> branchBlobHashCodes = Tools.getHeadCommit(branchName).getBlobHashCodes();
+            Map<String, String> branchBlobHashCodes = commit.getBlobHashCodes();
             Map<String, String> currentBranchBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
             for (String filename : currentBranchBlobHashCodes.keySet()) {
                 if (!branchBlobHashCodes.containsKey(filename)) {
@@ -263,10 +260,14 @@ public class Repository {
                 Utils.writeContents(file, contents);
             }
             Tools.clearStaging();
-            Utils.writeContents(Dir.head(), branchName);
         } catch (IOException e) {
             throw new GitletException();
         }
+    }
+
+    public static void checkoutBranch(String branchName) {
+        changeWorkspace(Tools.getHeadCommit(branchName));
+        Utils.writeContents(Dir.head(), branchName);
     }
 
     public static void branch(String branchName) {
@@ -282,5 +283,11 @@ public class Repository {
 
     public static void rmBranch(String branchName) {
         boolean success = Utils.join(Dir.heads(), branchName + DOT_HEAD).delete();
+    }
+
+    public static void reset(String commitHashCode) {
+        changeWorkspace(Tools.getCommit(commitHashCode));
+        File headFile = Utils.join(Dir.heads(), Tools.getCurrentBranchName() + DOT_HEAD);
+        Utils.writeContents(headFile, commitHashCode);
     }
 }

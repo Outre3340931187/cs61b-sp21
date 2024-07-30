@@ -67,6 +67,17 @@ public class Tools {
         }
     }
 
+    public static String shortCommitToLong(String shortCommitHashCode) {
+        String[] commitFilenames = Dir.commits().list();
+        assert commitFilenames != null;
+        for (String commitFilename : commitFilenames) {
+            if (commitFilename.startsWith(shortCommitHashCode)) {
+                return commitFilename.substring(0, commitFilename.lastIndexOf('.'));
+            }
+        }
+        return null;
+    }
+
     public static Blob getBlob(String hashCode) {
         File blobFile = Utils.join(Dir.blobs(), hashCode + Repository.DOT_BLOB);
         return Utils.readObject(blobFile, Blob.class);
