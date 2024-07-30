@@ -27,14 +27,15 @@ public class Commit implements Serializable, Dumpable {
     private final Map<String, String> blobHashCodes;
     private final String hashCode;
 
-    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
+    private final static DateTimeFormatter FORMATTER
+            = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
 
 
-    public Commit(String msg, ZonedDateTime time, List<String> parentCode, Map<String, String> blobCodes) {
+    public Commit(String msg, ZonedDateTime time, List<String> parents, Map<String, String> blobs) {
         this.message = msg;
         this.commitTime = time == null ? ZonedDateTime.now() : time;
-        this.parentHashCodes = parentCode;
-        this.blobHashCodes = blobCodes == null ? new HashMap<>() : blobCodes;
+        this.parentHashCodes = parents;
+        this.blobHashCodes = blobs == null ? new HashMap<>() : blobs;
         this.hashCode = Utils.sha1(Utils.serialize(this));
     }
 
@@ -67,7 +68,7 @@ public class Commit implements Serializable, Dumpable {
             String secondParentHashCode = parentHashCodes.get(1).substring(0, 7);
             System.out.println("Merge: " + firstParentHashCode + " " + secondParentHashCode);
         }
-        System.out.println("Date: " + commitTime.format(formatter));
+        System.out.println("Date: " + commitTime.format(FORMATTER));
         System.out.println(message);
         System.out.println();
     }

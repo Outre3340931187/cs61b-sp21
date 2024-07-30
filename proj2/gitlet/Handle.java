@@ -12,7 +12,8 @@ public class Handle {
             return;
         }
         if (Repository.GITLET_DIR.exists()) {
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.out.println(
+                    "A Gitlet version-control system already exists in the current directory.");
             return;
         }
         Repository.init();
@@ -40,13 +41,17 @@ public class Handle {
             System.out.println("Incorrect operands.");
             return;
         }
+        String message = args[1];
+        if (message.isEmpty()) {
+            System.out.println("Please enter a commit message.");
+            return;
+        }
         boolean addEmpty = Objects.requireNonNull(Dir.add().list()).length == 0;
         boolean removeEmpty = Utils.readObject(Dir.remove(), HashSet.class).isEmpty();
         if (addEmpty && removeEmpty) {
             System.out.println("No changes added to the commit.");
             return;
         }
-        String message = args[1];
         Repository.commit(message);
     }
 
@@ -108,13 +113,14 @@ public class Handle {
             System.out.println("No need to checkout the current branch.");
             return;
         }
-        Map<String, String> branchBlobHashCodes = Tools.getHeadCommit(branchName).getBlobHashCodes();
+        Map<String, String> branchBlobs = Tools.getHeadCommit(branchName).getBlobHashCodes();
         List<String> workspaceFilenames = Utils.plainFilenamesIn(Repository.CWD);
-        Map<String, String> currentBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
+        Map<String, String> currentBlobs = Tools.getHeadCommit().getBlobHashCodes();
         if (workspaceFilenames != null) {
             for (String filename : workspaceFilenames) {
-                if (!currentBlobHashCodes.containsKey(filename) && branchBlobHashCodes.containsKey(filename)) {
-                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                if (!currentBlobs.containsKey(filename) && branchBlobs.containsKey(filename)) {
+                    System.out.println("There is an untracked file in the way;" +
+                            " delete it, or add and commit it first.");
                     return;
                 }
             }
@@ -123,6 +129,10 @@ public class Handle {
     }
 
     private static void handleCheckoutFilename(String[] args) {
+        if (!"--".equals(args[1])) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
         String filename = args[2];
         Commit commit = Tools.getHeadCommit();
         if (!commit.getBlobHashCodes().containsKey(filename)) {
@@ -133,6 +143,10 @@ public class Handle {
     }
 
     private static void handleCheckoutCommitFilename(String[] args) {
+        if (!"--".equals(args[2])) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
         String commitHashCode = args[1];
         String filename = args[3];
         if (!Commit.contains(commitHashCode)) {

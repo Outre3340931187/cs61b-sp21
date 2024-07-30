@@ -23,7 +23,7 @@ public class Dir {
         return Utils.join(Repository.GITLET_DIR, "staging", "remove");
     }
 
-    public static File HEAD() {
+    public static File head() {
         return Utils.join(Repository.GITLET_DIR, "HEAD");
     }
 }

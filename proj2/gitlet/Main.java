@@ -12,8 +12,15 @@ public class Main {
      * <COMMAND> <OPERAND1> <OPERAND2> ...
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+        if (args.length == 0) {
+            System.out.println("Please enter a command.");
+            return;
+        }
         String firstArg = args[0];
+        if (!"init".equals(firstArg) && !Repository.initialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         switch (firstArg) {
             case "init":
                 Handle.handleInit(args);
@@ -48,6 +55,8 @@ public class Main {
             case "rm-branch":
                 Handle.handleRmBranch(args);
                 break;
+            default:
+                System.out.println("No command with that name exists.");
         }
     }
 }

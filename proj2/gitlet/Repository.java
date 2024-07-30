@@ -31,6 +31,10 @@ public class Repository {
 
     public static final String DOT_HEAD = ".head";
 
+    public static boolean initialized() {
+        return Repository.GITLET_DIR.exists();
+    }
+
     public static void init() {
         try {
             // objects
@@ -76,26 +80,32 @@ public class Repository {
     }
 
     public static void add(String filename) {
-        Commit currentCommit = Tools.getHeadCommit();
-        File thisFile = Utils.join(CWD, filename);
-        byte[] thisFileBytes = Tools.readAllBytes(thisFile);
-
-        if (currentCommit.getBlobHashCodes() != null && currentCommit.getBlobHashCodes().get(filename) != null) {
-            String hashCode = currentCommit.getBlobHashCodes().get(filename);
-            byte[] commitedFileContents = Tools.getBlob(hashCode).getContents();
-            if (Arrays.equals(thisFileBytes, commitedFileContents)) {
-                return;
-            }
-        }
-
-        Blob blob = new Blob(filename, thisFileBytes);
-        File addedFile = Utils.join(Dir.add(), filename);
         try {
+            // remove it from the remove stage if it is there.
+            HashSet<String> removedFilenames = Tools.getRemovedFilenames();
+            removedFilenames.remove(filename);
+            Utils.writeObject(Dir.remove(), removedFilenames);
+
+            Commit currentCommit = Tools.getHeadCommit();
+            File thisFile = Utils.join(CWD, filename);
+            byte[] thisFileBytes = Tools.readAllBytes(thisFile);
+
+            if (currentCommit.getBlobHashCodes().containsKey(filename)) {
+                String hashCode = currentCommit.getBlobHashCodes().get(filename);
+                byte[] commitedFileContents = Tools.getBlob(hashCode).getContents();
+                if (Arrays.equals(thisFileBytes, commitedFileContents)) {
+                    // remove it from the add stage if it is there.
+                    boolean success = Utils.join(Dir.add(), filename).delete();
+                    return;
+                }
+            }
+            Blob blob = new Blob(filename, thisFileBytes);
+            File addedFile = Utils.join(Dir.add(), filename);
             boolean success = addedFile.createNewFile();
+            Utils.writeObject(addedFile, blob);
         } catch (IOException e) {
-            throw new GitletException("Failed to add file: " + filename);
+            throw new GitletException();
         }
-        Utils.writeObject(addedFile, blob);
     }
 
     public static void commit(String message) {
@@ -253,7 +263,7 @@ public class Repository {
                 Utils.writeContents(file, contents);
             }
             Tools.clearStaging();
-            Utils.writeContents(Dir.HEAD(), branchName);
+            Utils.writeContents(Dir.head(), branchName);
         } catch (IOException e) {
             throw new GitletException();
         }

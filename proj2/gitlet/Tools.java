@@ -7,7 +7,7 @@ import java.util.*;
 public class Tools {
 
     public static String getCurrentBranchName() {
-        return Utils.readContentsAsString(Dir.HEAD());
+        return Utils.readContentsAsString(Dir.head());
     }
 
     public static String getHeadCommitHashCode(String branchName) {
@@ -109,15 +109,19 @@ public class Tools {
         }
 
         for (String filename : committedFiles.keySet()) {
-            boolean delete = !Utils.join(Repository.CWD, filename).exists();
             boolean remove = getRemovedFilenames().contains(filename);
+            if (remove) {
+                continue;
+            }
+            boolean delete = !Utils.join(Repository.CWD, filename).exists();
+            if (delete) {
+                modifiedNotStagedFiles.put(filename, "deleted");
+                continue;
+            }
             byte[] committedContents = getBlob(committedFiles.get(filename)).getContents();
             byte[] currentContents = readAllBytes(Utils.join(Repository.CWD, filename));
             boolean modified = !Arrays.equals(committedContents, currentContents);
-            if (delete && !remove) {
-                modifiedNotStagedFiles.put(filename, "deleted");
-            }
-            if (!delete && modified) {
+            if (modified) {
                 modifiedNotStagedFiles.put(filename, "modified");
             }
         }
