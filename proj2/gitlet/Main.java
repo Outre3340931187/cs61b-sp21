@@ -1,7 +1,5 @@
 package gitlet;
 
-import java.lang.reflect.Array;
-
 /**
  * Driver class for Gitlet, a subset of the Git version-control system.
  *
@@ -26,9 +24,6 @@ public class Main {
             case "commit":
                 Handle.handleCommit(args);
                 break;
-            case "checkout":
-                Handle.handleCheckout(args);
-                break;
             case "log":
                 Handle.handleLog(args);
                 break;
@@ -43,6 +38,12 @@ public class Main {
                 break;
             case "status":
                 Handle.handleStatus(args);
+                break;
+            case "checkout":
+                Handle.handleCheckout(args);
+                break;
+            case "branch":
+                Handle.handleBranch(args);
                 break;
         }
     }

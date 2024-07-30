@@ -1,9 +1,6 @@
 package gitlet;
 
-import edu.neu.ccs.quick.Pair;
-
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -94,7 +91,7 @@ public class Tools {
         }
 
         for (String filename : committedFiles.keySet()) {
-            boolean delete = Utils.join(Repository.CWD, filename).exists();
+            boolean delete = !Utils.join(Repository.CWD, filename).exists();
             boolean remove = getRemovedFilenames().contains(filename);
             byte[] committedContents = getBlob(committedFiles.get(filename)).getContents();
             byte[] currentContents = readAllBytes(Utils.join(Repository.CWD, filename));

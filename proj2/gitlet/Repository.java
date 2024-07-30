@@ -111,7 +111,7 @@ public class Repository {
                     parentBlobs.put(filename, hashCode);
                 }
                 for (File f : addedFiles) {
-                    Utils.restrictedDelete(f);
+                    boolean success = f.delete();
                 }
             }
             HashSet<String> removedFilenames = Tools.getRemovedFilenames();
@@ -135,7 +135,7 @@ public class Repository {
     public static void rm(String filename) {
         File stagedFile = Utils.join(Dir.add(), filename);
         if (stagedFile.exists()) {
-            Utils.restrictedDelete(stagedFile);
+            boolean success = stagedFile.delete();
         }
         if (Tools.getHeadCommit().getBlobHashCodes().containsKey(filename)) {
             HashSet<String> removedFilenames = Tools.getRemovedFilenames();
@@ -144,7 +144,7 @@ public class Repository {
         }
         File workspaceFile = Utils.join(CWD, filename);
         if (workspaceFile.exists()) {
-            Utils.restrictedDelete(workspaceFile);
+            boolean success = workspaceFile.delete();
         }
     }
 
@@ -212,7 +212,7 @@ public class Repository {
 
         System.out.println("=== Modifications Not Staged For Commit ===");
         TreeMap<String, String> modifiedNotStagedFiles = Tools.getModifiedNotStagedFiles();
-        modifiedNotStagedFiles.forEach((name, state) -> System.out.printf("%s (%s)", name, state));
+        modifiedNotStagedFiles.forEach((name, state) -> System.out.printf("%s (%s)\n", name, state));
         System.out.println();
 
         System.out.println("=== Untracked Files ===");
@@ -234,6 +234,22 @@ public class Repository {
                 boolean success = workspaceFile.createNewFile();
             }
             Utils.writeContents(workspaceFile, contents);
+        } catch (IOException e) {
+            throw new GitletException();
+        }
+    }
+
+    public static void checkoutBranch(String branchName) {
+
+    }
+
+    public static void branch(String branchName) {
+        try {
+            String currentCommitHashCode = Tools.getHeadCommitHashCode();
+            File branchFile = Utils.join(Dir.heads(), branchName + DOT_HEAD);
+            boolean success = branchFile.createNewFile();
+            Utils.writeContents(branchFile, currentCommitHashCode);
+            Utils.writeContents(Dir.HEAD(), branchName);
         } catch (IOException e) {
             throw new GitletException();
         }

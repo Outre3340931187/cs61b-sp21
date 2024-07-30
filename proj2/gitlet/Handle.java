@@ -124,4 +124,17 @@ public class Handle {
             System.out.println("Incorrect operands.");
         }
     }
+
+    public static void handleBranch(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
+        String branchName = args[1];
+        if (Utils.join(Dir.heads(), branchName + Repository.DOT_HEAD).exists()) {
+            System.out.println("A branch with that name already exists.");
+            return;
+        }
+        Repository.branch(branchName);
+    }
 }
