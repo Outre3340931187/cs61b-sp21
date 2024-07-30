@@ -45,6 +45,9 @@ public class Main {
             case "branch":
                 Handle.handleBranch(args);
                 break;
+            case "rm-branch":
+                Handle.handleRmBranch(args);
+                break;
         }
     }
 }

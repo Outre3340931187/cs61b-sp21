@@ -41,6 +41,24 @@ public class Tools {
         return getHeadFile(getCurrentBranchName());
     }
 
+    public static void clearAddStaging() {
+        File[] addFiles = Dir.add().listFiles();
+        if (addFiles != null) {
+            for (File file : addFiles) {
+                boolean success = file.delete();
+            }
+        }
+    }
+
+    public static void clearRemoveStaging() {
+        Utils.writeObject(Dir.remove(), new HashSet<String>());
+    }
+
+    public static void clearStaging() {
+        clearAddStaging();
+        clearRemoveStaging();
+    }
+
     public static byte[] readAllBytes(File file) {
         try {
             return Files.readAllBytes(file.toPath());

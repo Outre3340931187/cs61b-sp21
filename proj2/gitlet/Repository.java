@@ -110,16 +110,12 @@ public class Repository {
                     String hashCode = Tools.addStagingToBlobs(f);
                     parentBlobs.put(filename, hashCode);
                 }
-                for (File f : addedFiles) {
-                    boolean success = f.delete();
-                }
             }
             HashSet<String> removedFilenames = Tools.getRemovedFilenames();
             for (String filename : removedFilenames) {
                 parentBlobs.remove(filename);
             }
-            removedFilenames.clear();
-            Utils.writeObject(Dir.remove(), removedFilenames);
+            Tools.clearStaging();
 
             Commit newCommit = new Commit(message, null, Collections.singletonList(parentHashCode), parentBlobs);
             String newCommitHashCode = newCommit.getHashCode();
@@ -240,7 +236,27 @@ public class Repository {
     }
 
     public static void checkoutBranch(String branchName) {
-
+        try {
+            Map<String, String> branchBlobHashCodes = Tools.getHeadCommit(branchName).getBlobHashCodes();
+            Map<String, String> currentBranchBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
+            for (String filename : currentBranchBlobHashCodes.keySet()) {
+                if (!branchBlobHashCodes.containsKey(filename)) {
+                    boolean success = Utils.join(CWD, filename).delete();
+                }
+            }
+            for (String filename : branchBlobHashCodes.keySet()) {
+                File file = Utils.join(CWD, filename);
+                if (!file.exists()) {
+                    boolean success = file.createNewFile();
+                }
+                byte[] contents = Tools.getBlob(branchBlobHashCodes.get(filename)).getContents();
+                Utils.writeContents(file, contents);
+            }
+            Tools.clearStaging();
+            Utils.writeContents(Dir.HEAD(), branchName);
+        } catch (IOException e) {
+            throw new GitletException();
+        }
     }
 
     public static void branch(String branchName) {
@@ -249,9 +265,12 @@ public class Repository {
             File branchFile = Utils.join(Dir.heads(), branchName + DOT_HEAD);
             boolean success = branchFile.createNewFile();
             Utils.writeContents(branchFile, currentCommitHashCode);
-            Utils.writeContents(Dir.HEAD(), branchName);
         } catch (IOException e) {
             throw new GitletException();
         }
+    }
+
+    public static void rmBranch(String branchName) {
+        boolean success = Utils.join(Dir.heads(), branchName + DOT_HEAD).delete();
     }
 }

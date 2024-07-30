@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class Handle {
@@ -96,30 +98,62 @@ public class Handle {
         Repository.status();
     }
 
+    private static void handleCheckoutBranch(String[] args) {
+        String branchName = args[1];
+        if (!Utils.join(Dir.heads(), branchName + Repository.DOT_HEAD).exists()) {
+            System.out.println("No such branch exists.");
+            return;
+        }
+        if (Tools.getCurrentBranchName().equals(branchName)) {
+            System.out.println("No need to checkout the current branch.");
+            return;
+        }
+        Map<String, String> branchBlobHashCodes = Tools.getHeadCommit(branchName).getBlobHashCodes();
+        List<String> workspaceFilenames = Utils.plainFilenamesIn(Repository.CWD);
+        Map<String, String> currentBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
+        if (workspaceFilenames != null) {
+            for (String filename : workspaceFilenames) {
+                if (!currentBlobHashCodes.containsKey(filename) && branchBlobHashCodes.containsKey(filename)) {
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                    return;
+                }
+            }
+        }
+        Repository.checkoutBranch(branchName);
+    }
+
+    private static void handleCheckoutFilename(String[] args) {
+        String filename = args[2];
+        Commit commit = Tools.getHeadCommit();
+        if (!commit.getBlobHashCodes().containsKey(filename)) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+        Repository.checkout(filename);
+    }
+
+    private static void handleCheckoutCommitFilename(String[] args) {
+        String commitHashCode = args[1];
+        String filename = args[3];
+        if (!Commit.contains(commitHashCode)) {
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        Commit commit = Tools.getCommit(commitHashCode);
+        if (!commit.getBlobHashCodes().containsKey(filename)) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+        Repository.checkout(commitHashCode, filename);
+    }
+
     public static void handleCheckout(String[] args) {
         if (args.length == 2) {
-
+            handleCheckoutBranch(args);
         } else if (args.length == 3) {
-            String filename = args[2];
-            Commit commit = Tools.getHeadCommit();
-            if (!commit.getBlobHashCodes().containsKey(filename)) {
-                System.out.println("File does not exist in that commit.");
-                return;
-            }
-            Repository.checkout(filename);
+            handleCheckoutFilename(args);
         } else if (args.length == 4) {
-            String commitHashCode = args[1];
-            String filename = args[3];
-            if (!Commit.contains(commitHashCode)) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
-            Commit commit = Tools.getCommit(commitHashCode);
-            if (!commit.getBlobHashCodes().containsKey(filename)) {
-                System.out.println("File does not exist in that commit.");
-                return;
-            }
-            Repository.checkout(commitHashCode, filename);
+            handleCheckoutCommitFilename(args);
         } else {
             System.out.println("Incorrect operands.");
         }
@@ -136,5 +170,22 @@ public class Handle {
             return;
         }
         Repository.branch(branchName);
+    }
+
+    public static void handleRmBranch(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
+        String branchName = args[1];
+        if (!Utils.join(Dir.heads(), branchName + Repository.DOT_HEAD).exists()) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if (Tools.getCurrentBranchName().equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+        Repository.rmBranch(branchName);
     }
 }
