@@ -108,7 +108,7 @@ public class Repository {
         }
     }
 
-    public static void commit(String message) {
+    public static void commit(String message, String anotherParentHashCode) {
         try {
             String parentHashCode = Tools.getHeadCommitHashCode();
             Map<String, String> parentBlobs = Tools.getCommit(parentHashCode).getBlobHashCodes();
@@ -127,7 +127,12 @@ public class Repository {
             }
             Tools.clearStaging();
 
-            Commit newCommit = new Commit(message, null, Collections.singletonList(parentHashCode), parentBlobs);
+            List<String> parents = new ArrayList<>();
+            parents.add(parentHashCode);
+            if (anotherParentHashCode != null) {
+                parents.add(anotherParentHashCode);
+            }
+            Commit newCommit = new Commit(message, null, parents, parentBlobs);
             String newCommitHashCode = newCommit.getHashCode();
             File newCommitFile = Utils.join(Dir.commits(), newCommitHashCode + DOT_COMMIT);
             boolean success = newCommitFile.createNewFile();
@@ -289,5 +294,100 @@ public class Repository {
         changeWorkspace(Tools.getCommit(commitHashCode));
         File headFile = Utils.join(Dir.heads(), Tools.getCurrentBranchName() + DOT_HEAD);
         Utils.writeContents(headFile, commitHashCode);
+    }
+
+    public static void merge(String branchName) {
+        // TODO: checkUntrackedFiles(Commit);
+        try {
+            String splitCommitHash = Tools.getSplitCommitHashCode(branchName);
+            if (Tools.getHeadCommitHashCode(branchName).equals(splitCommitHash)) {
+                System.out.println("Given branch is an ancestor of the current branch.");
+                return;
+            }
+            if (Tools.getHeadCommitHashCode().equals(splitCommitHash)) {
+                changeWorkspace(Tools.getHeadCommit(branchName));
+                System.out.println("Current branch fast-forwarded.");
+                return;
+            }
+            boolean conflict = false;
+            String branchHeadHash = Tools.getHeadCommitHashCode(branchName);
+            Map<String, String> currentBlobs = Tools.getHeadCommit().getBlobHashCodes();
+            Map<String, String> branchBlobs = Tools.getCommit(branchHeadHash).getBlobHashCodes();
+            Map<String, String> splitBlobs = Tools.getCommit(splitCommitHash).getBlobHashCodes();
+            for (String file : splitBlobs.keySet()) {
+                boolean currentExists = currentBlobs.containsKey(file);
+                boolean branchExists = branchBlobs.containsKey(file);
+                if (currentExists && branchExists) {
+                    // both exists
+                    byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
+                    byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
+                    byte[] branchContents = Tools.getBlob(branchBlobs.get(file)).getContents();
+                    boolean currentModified = !Arrays.equals(contents, currentContents);
+                    boolean branchModified = !Arrays.equals(contents, branchContents);
+                    if (!currentModified && branchModified) {
+                        File workspaceFile = Utils.join(CWD, file);
+                        if (!workspaceFile.exists()) {
+                            boolean success = workspaceFile.createNewFile();
+                        }
+                        Utils.writeContents(Utils.join(CWD, file), branchContents);
+                        add(file);
+                    } else if (currentModified && branchModified) {
+                        if (!Arrays.equals(currentContents, branchContents)) {
+                            conflict = true;
+                            String newCon = Tools.mergeContents(currentContents, branchContents);
+                            Utils.writeContents(Utils.join(CWD, file), newCon);
+                        }
+                    }
+                } else if (currentExists && !branchExists) {
+                    // only exists in current branch
+                    byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
+                    byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
+                    boolean currentModified = !Arrays.equals(contents, currentContents);
+                    if (!currentModified) {
+                        boolean success = Utils.join(CWD, file).delete();
+                        currentBlobs.remove(file);
+                    } else {
+                        conflict = true;
+                        String newContents = Tools.mergeContents(currentContents, null);
+                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                    }
+                } else if (!currentExists && branchExists) {
+                    // only exists in merged branch
+                    byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
+                    byte[] branchContents = Tools.getBlob(branchBlobs.get(file)).getContents();
+                    boolean branchModified = !Arrays.equals(contents, branchContents);
+                    if (branchModified) {
+                        conflict = true;
+                        String newContents = Tools.mergeContents(null, branchContents);
+                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                    }
+                }
+            }
+            Set<String> currentDifference = new HashSet<>(currentBlobs.keySet());
+            currentDifference.removeAll(splitBlobs.keySet());
+            Set<String> branchDifference = new HashSet<>(branchBlobs.keySet());
+            branchDifference.removeAll(splitBlobs.keySet());
+            for (String file : branchDifference) {
+                if (currentDifference.contains(file)) {
+                    byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
+                    byte[] branchContents = Tools.getBlob(branchBlobs.get(file)).getContents();
+                    if (!Arrays.equals(currentContents, branchContents)) {
+                        conflict = true;
+                        String newContents = Tools.mergeContents(currentContents, branchContents);
+                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                    }
+                } else {
+                    checkout(branchHeadHash, file);
+                    add(file);
+                }
+            }
+            String message = "Merged " + branchName + " into " + Tools.getCurrentBranchName() + ".";
+            if (conflict) {
+                System.out.println("Encountered a merge conflict.");
+            }
+            commit(message, branchHeadHash);
+        } catch (IOException e) {
+            throw new GitletException();
+        }
     }
 }

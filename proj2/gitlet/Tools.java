@@ -96,8 +96,16 @@ public class Tools {
         }
     }
 
+    public static String[] getAddedFilenames() {
+        return Dir.add().list();
+    }
+
     public static HashSet<String> getRemovedFilenames() {
         return Utils.readObject(Dir.remove(), HashSet.class);
+    }
+
+    public static boolean stagingEmpty() {
+        return getAddedFilenames().length == 0 && getRemovedFilenames().isEmpty();
     }
 
     public static TreeMap<String, String> getModifiedNotStagedFiles() {
@@ -153,5 +161,43 @@ public class Tools {
             }
         }
         return untrackedFiles;
+    }
+
+    public static String getSplitCommitHashCode(String branchName) {
+        HashSet<String> currentBranchHistory = new HashSet<>();
+        Commit currentCommit = getHeadCommit();
+        while (true) {
+            currentBranchHistory.add(currentCommit.getHashCode());
+            if (currentCommit.getParentHashCodes() == null) {
+                break;
+            }
+            currentCommit = getCommit(currentCommit.getParentHashCodes().get(0));
+        }
+        Commit branchCommit = getHeadCommit(branchName);
+        while (true) {
+            if (currentBranchHistory.contains(branchCommit.getHashCode())) {
+                return branchCommit.getHashCode();
+            }
+            if (branchCommit.getParentHashCodes() == null) {
+                break;
+            }
+            branchCommit = getCommit(branchCommit.getParentHashCodes().get(0));
+        }
+        return "null";
+    }
+
+    public static String mergeContents(byte[] currentContents, byte[] branchContents) {
+        StringBuilder contents = new StringBuilder();
+        String newline = System.lineSeparator();
+        contents.append("<<<<<<< HEAD").append(newline);
+        if (currentContents != null) {
+            contents.append(new String(currentContents));
+        }
+        contents.append("=======");
+        if (branchContents != null) {
+            contents.append(new String(branchContents));
+        }
+        contents.append(">>>>>>>");
+        return contents.toString();
     }
 }

@@ -58,6 +58,8 @@ public class Main {
             case "reset":
                 Handle.handleReset(args);
                 break;
+            case "merge":
+                Handle.handleMerge(args);
             default:
                 System.out.println("No command with that name exists.");
         }

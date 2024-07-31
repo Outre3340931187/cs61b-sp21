@@ -52,7 +52,7 @@ public class Handle {
             System.out.println("No changes added to the commit.");
             return;
         }
-        Repository.commit(message);
+        Repository.commit(message, null);
     }
 
     public static void handleRm(String[] args) {
@@ -219,5 +219,26 @@ public class Handle {
         }
         checkUntrackedFiles(Tools.getCommit(commitHashCode));
         Repository.reset(commitHashCode);
+    }
+
+    public static void handleMerge(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Incorrect operands.");
+            return;
+        }
+        if (!Tools.stagingEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            return;
+        }
+        String branchName = args[1];
+        if (!Utils.join(Dir.heads(), branchName + Repository.DOT_HEAD).exists()) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if (Tools.getCurrentBranchName().equals(branchName)) {
+            System.out.println("Cannot merge a branch with itself.");
+            return;
+        }
+        Repository.merge(branchName);
     }
 }
