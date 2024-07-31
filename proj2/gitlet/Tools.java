@@ -193,7 +193,7 @@ public class Tools {
         if (currentContents != null) {
             contents.append(new String(currentContents));
         }
-        contents.append("=======");
+        contents.append("=======").append(newline);
         if (branchContents != null) {
             contents.append(new String(branchContents));
         }
