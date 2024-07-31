@@ -344,8 +344,7 @@ public class Repository {
                     byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
                     boolean currentModified = !Arrays.equals(contents, currentContents);
                     if (!currentModified) {
-                        boolean success = Utils.join(CWD, file).delete();
-                        currentBlobs.remove(file);
+                        rm(file);
                     } else {
                         conflict = true;
                         String newContents = Tools.mergeContents(currentContents, null);
