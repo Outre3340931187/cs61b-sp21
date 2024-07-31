@@ -21,7 +21,7 @@ public class Commit implements Serializable, Dumpable {
     /**
      * The message of this Commit.
      */
-    private final DateTimeFormatter formatter
+    private static final DateTimeFormatter FORMATTER
             = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy xx", Locale.US);
 
     private final String message;
@@ -68,7 +68,7 @@ public class Commit implements Serializable, Dumpable {
             String secondParentHashCode = parentHashCodes.get(1).substring(0, 7);
             System.out.println("Merge: " + firstParentHashCode + " " + secondParentHashCode);
         }
-        System.out.println("Date: " + commitTime.format(formatter));
+        System.out.println("Date: " + commitTime.format(FORMATTER));
         System.out.println(message);
         System.out.println();
     }
