@@ -60,6 +60,7 @@ public class Main {
                 break;
             case "merge":
                 Handle.handleMerge(args);
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }

@@ -220,7 +220,7 @@ public class Repository {
 
         System.out.println("=== Modifications Not Staged For Commit ===");
         TreeMap<String, String> modifiedNotStagedFiles = Tools.getModifiedNotStagedFiles();
-        modifiedNotStagedFiles.forEach((name, state) -> System.out.printf("%s (%s)\n", name, state));
+        modifiedNotStagedFiles.forEach((file, s) -> System.out.printf("%s (%s)\n", file, s));
         System.out.println();
 
         System.out.println("=== Untracked Files ===");
@@ -250,8 +250,8 @@ public class Repository {
     private static void changeWorkspace(Commit commit) {
         try {
             Map<String, String> branchBlobHashCodes = commit.getBlobHashCodes();
-            Map<String, String> currentBranchBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
-            for (String filename : currentBranchBlobHashCodes.keySet()) {
+            Map<String, String> currentBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
+            for (String filename : currentBlobHashCodes.keySet()) {
                 if (!branchBlobHashCodes.containsKey(filename)) {
                     boolean success = Utils.join(CWD, filename).delete();
                 }
