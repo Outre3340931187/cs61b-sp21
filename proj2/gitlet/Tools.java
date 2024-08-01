@@ -163,27 +163,51 @@ public class Tools {
         return untrackedFiles;
     }
 
-    public static String getSplitCommitHashCode(String branchName) {
-        HashSet<String> currentBranchHistory = new HashSet<>();
-        Commit currentCommit = getHeadCommit();
-        while (true) {
-            currentBranchHistory.add(currentCommit.getHashCode());
-            if (currentCommit.getParentHashCodes() == null) {
-                break;
-            }
-            currentCommit = getCommit(currentCommit.getParentHashCodes().get(0));
+    private static void dfsCommitAncestors(Set<String> ancestors, String commitHashCode) {
+        if (ancestors.contains(commitHashCode)) {
+            return;
         }
-        Commit branchCommit = getHeadCommit(branchName);
-        while (true) {
-            if (currentBranchHistory.contains(branchCommit.getHashCode())) {
-                return branchCommit.getHashCode();
+        ancestors.add(commitHashCode);
+        List<String> parentHashCodes = getCommit(commitHashCode).getParentHashCodes();
+        if (parentHashCodes == null) {
+            return;
+        }
+        for (String parentHashCode : parentHashCodes) {
+            dfsCommitAncestors(ancestors, parentHashCode);
+        }
+    }
+
+    private static Set<String> getCommitAncestors(String commitHashCode) {
+        Set<String> ancestors = new HashSet<>();
+        dfsCommitAncestors(ancestors, commitHashCode);
+        return ancestors;
+    }
+
+    private static Set<String> getCommonAncestors(Set<String> ancestors1, Set<String> ancestors2) {
+        Set<String> commonAncestors = new HashSet<>(ancestors1);
+        commonAncestors.retainAll(ancestors2);
+        return commonAncestors;
+    }
+
+    private static String getLatestCommonAncestor(Set<String> commonAncestors) {
+        for (String ancestor : commonAncestors) {
+            Set<String> ancestors = getCommitAncestors(ancestor);
+            if (getCommonAncestors(ancestors, commonAncestors).isEmpty()) {
+                return ancestor;
             }
-            if (branchCommit.getParentHashCodes() == null) {
-                break;
-            }
-            branchCommit = getCommit(branchCommit.getParentHashCodes().get(0));
         }
         return "null";
+    }
+
+    public static String getSplitCommitHashCode(String branchName) {
+        String currentHeadHashCode = getHeadCommitHashCode();
+        Set<String> currentAncestors = getCommitAncestors(currentHeadHashCode);
+
+        String branchHeadHashCode = getHeadCommitHashCode(branchName);
+        Set<String> branchAncestors = getCommitAncestors(branchHeadHashCode);
+
+        Set<String> commonAncestors = getCommitAncestors(currentHeadHashCode);
+        return getLatestCommonAncestor(commonAncestors);
     }
 
     public static String mergeContents(byte[] currentContents, byte[] branchContents) {
@@ -197,7 +221,7 @@ public class Tools {
         if (branchContents != null) {
             contents.append(new String(branchContents));
         }
-        contents.append(">>>>>>>");
+        contents.append(">>>>>>>").append(newline);
         return contents.toString();
     }
 }
