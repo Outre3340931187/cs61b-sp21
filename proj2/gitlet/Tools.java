@@ -206,7 +206,7 @@ public class Tools {
         String branchHeadHashCode = getHeadCommitHashCode(branchName);
         Set<String> branchAncestors = getCommitAncestors(branchHeadHashCode);
 
-        Set<String> commonAncestors = getCommitAncestors(currentHeadHashCode);
+        Set<String> commonAncestors = getCommonAncestors(currentAncestors, branchAncestors);
         return getLatestCommonAncestor(commonAncestors);
     }
 
