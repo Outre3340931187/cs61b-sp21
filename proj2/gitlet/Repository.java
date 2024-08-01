@@ -247,7 +247,7 @@ public class Repository {
         }
     }
 
-    private static void changeWorkspace(Commit commit) {
+    public static void changeWorkspace(Commit commit) {
         try {
             Map<String, String> branchBlobHashCodes = commit.getBlobHashCodes();
             Map<String, String> currentBlobHashCodes = Tools.getHeadCommit().getBlobHashCodes();
@@ -296,19 +296,26 @@ public class Repository {
         Utils.writeContents(headFile, commitHashCode);
     }
 
+    private static void mergeTwoFiles(String file, byte[] currentContents, byte[] branchContents) {
+        StringBuilder contents = new StringBuilder();
+        String newline = System.lineSeparator();
+        contents.append("<<<<<<< HEAD").append(newline);
+        if (currentContents != null) {
+            contents.append(new String(currentContents));
+        }
+        contents.append("=======").append(newline);
+        if (branchContents != null) {
+            contents.append(new String(branchContents));
+        }
+        contents.append(">>>>>>>").append(newline);
+        Utils.writeContents(Utils.join(CWD, file), contents.toString());
+        add(file);
+    }
+
     public static void merge(String branchName) {
         // TODO: checkUntrackedFiles(Commit);
         try {
             String splitCommitHash = Tools.getSplitCommitHashCode(branchName);
-            if (Tools.getHeadCommitHashCode(branchName).equals(splitCommitHash)) {
-                System.out.println("Given branch is an ancestor of the current branch.");
-                return;
-            }
-            if (Tools.getHeadCommitHashCode().equals(splitCommitHash)) {
-                changeWorkspace(Tools.getHeadCommit(branchName));
-                System.out.println("Current branch fast-forwarded.");
-                return;
-            }
             boolean conflict = false;
             String branchHeadHash = Tools.getHeadCommitHashCode(branchName);
             Map<String, String> currentBlobs = Tools.getHeadCommit().getBlobHashCodes();
@@ -334,8 +341,7 @@ public class Repository {
                     } else if (currentModified && branchModified) {
                         if (!Arrays.equals(currentContents, branchContents)) {
                             conflict = true;
-                            String newCon = Tools.mergeContents(currentContents, branchContents);
-                            Utils.writeContents(Utils.join(CWD, file), newCon);
+                            mergeTwoFiles(file, currentContents, branchContents);
                         }
                     }
                 } else if (currentExists && !branchExists) {
@@ -343,12 +349,11 @@ public class Repository {
                     byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
                     byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
                     boolean currentModified = !Arrays.equals(contents, currentContents);
-                    if (!currentModified) {
-                        rm(file);
-                    } else {
+                    if (currentModified) {
                         conflict = true;
-                        String newContents = Tools.mergeContents(currentContents, null);
-                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                        mergeTwoFiles(file, currentContents, null);
+                    } else {
+                        rm(file);
                     }
                 } else if (!currentExists && branchExists) {
                     // only exists in merged branch
@@ -357,8 +362,7 @@ public class Repository {
                     boolean branchModified = !Arrays.equals(contents, branchContents);
                     if (branchModified) {
                         conflict = true;
-                        String newContents = Tools.mergeContents(null, branchContents);
-                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                        mergeTwoFiles(file, null, branchContents);
                     }
                 }
             }
@@ -372,8 +376,7 @@ public class Repository {
                     byte[] branchContents = Tools.getBlob(branchBlobs.get(file)).getContents();
                     if (!Arrays.equals(currentContents, branchContents)) {
                         conflict = true;
-                        String newContents = Tools.mergeContents(currentContents, branchContents);
-                        Utils.writeContents(Utils.join(CWD, file), newContents);
+                        mergeTwoFiles(file, currentContents, branchContents);
                     }
                 } else {
                     checkout(branchHeadHash, file);

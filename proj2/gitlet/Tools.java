@@ -209,19 +209,4 @@ public class Tools {
         Set<String> commonAncestors = getCommonAncestors(currentAncestors, branchAncestors);
         return getLatestCommonAncestor(commonAncestors);
     }
-
-    public static String mergeContents(byte[] currentContents, byte[] branchContents) {
-        StringBuilder contents = new StringBuilder();
-        String newline = System.lineSeparator();
-        contents.append("<<<<<<< HEAD").append(newline);
-        if (currentContents != null) {
-            contents.append(new String(currentContents));
-        }
-        contents.append("=======").append(newline);
-        if (branchContents != null) {
-            contents.append(new String(branchContents));
-        }
-        contents.append(">>>>>>>").append(newline);
-        return contents.toString();
-    }
 }

@@ -239,6 +239,17 @@ public class Handle {
             System.out.println("Cannot merge a branch with itself.");
             return;
         }
+        checkUntrackedFiles(Tools.getHeadCommit(branchName));
+        String splitCommitHash = Tools.getSplitCommitHashCode(branchName);
+        if (Tools.getHeadCommitHashCode(branchName).equals(splitCommitHash)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (Tools.getHeadCommitHashCode().equals(splitCommitHash)) {
+            Repository.changeWorkspace(Tools.getHeadCommit(branchName));
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
         Repository.merge(branchName);
     }
 }
