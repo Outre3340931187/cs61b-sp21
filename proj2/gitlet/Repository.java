@@ -313,7 +313,6 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
-        // TODO: checkUntrackedFiles(Commit);
         try {
             String splitCommitHash = Tools.getSplitCommitHashCode(branchName);
             boolean conflict = false;
@@ -344,7 +343,7 @@ public class Repository {
                             mergeTwoFiles(file, currentContents, branchContents);
                         }
                     }
-                } else if (currentExists && !branchExists) {
+                } else if (currentExists) {
                     // only exists in current branch
                     byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
                     byte[] currentContents = Tools.getBlob(currentBlobs.get(file)).getContents();
@@ -355,7 +354,7 @@ public class Repository {
                     } else {
                         rm(file);
                     }
-                } else if (!currentExists && branchExists) {
+                } else if (branchExists) {
                     // only exists in merged branch
                     byte[] contents = Tools.getBlob(splitBlobs.get(file)).getContents();
                     byte[] branchContents = Tools.getBlob(branchBlobs.get(file)).getContents();
