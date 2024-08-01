@@ -192,7 +192,7 @@ public class Tools {
     private static String getLatestCommonAncestor(Set<String> commonAncestors) {
         for (String ancestor : commonAncestors) {
             Set<String> ancestors = getCommitAncestors(ancestor);
-            if (getCommonAncestors(ancestors, commonAncestors).isEmpty()) {
+            if (getCommonAncestors(ancestors, commonAncestors).size() == 1) {
                 return ancestor;
             }
         }
